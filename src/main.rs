@@ -9,8 +9,6 @@ use aws_sdk_ecr::Client;
 use clap::Parser;
 use futures_util::stream::{self as stream, StreamExt};
 use globset::{Glob, GlobSet};
-use oci_spec::image::Descriptor;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
 use tracing::{debug, info, instrument, Level};
@@ -33,16 +31,6 @@ pub struct Args {
 
     #[arg(long)]
     exclude: Option<Vec<Glob>>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct RepositoryImage {
-    repository_name: String,
-    image_tags: Option<Vec<String>>,
-    image_digest: String,
-    image_pushed_at: i64,
-    last_recorded_pull_time: Option<i64>,
-    layers: Vec<Descriptor>,
 }
 
 #[tokio::main]

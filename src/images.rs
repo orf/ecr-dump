@@ -40,6 +40,7 @@ pub struct RepositoryImage {
     repository_name: RepositoryName,
     manifest_digest: ManifestDigest,
     manifest_type: ManifestType,
+    #[serde(rename = "tags")]
     image_tags: Vec<String>,
     image_pushed_at: DateTime<Utc>,
     last_recorded_pull_time: Option<DateTime<Utc>>,
@@ -84,6 +85,25 @@ pub struct ImageManifestWithDescriptor {
 pub struct ImageWithManifests {
     pub image: RepositoryImage,
     pub manifests: Vec<ImageManifestWithDescriptor>,
+    pub total_layer_count: usize,
+    pub total_size: usize,
+}
+
+impl ImageWithManifests {
+    pub fn new(image: RepositoryImage, manifests: Vec<ImageManifestWithDescriptor>) -> Self {
+        let total_layer_count = manifests.iter().flat_map(|m| m.content.layers()).count();
+        let total_size = manifests
+            .iter()
+            .flat_map(|m| m.content.layers())
+            .map(|v| v.size())
+            .sum::<i64>();
+        Self {
+            image,
+            manifests,
+            total_layer_count,
+            total_size: total_size as usize,
+        }
+    }
 }
 
 pub struct ImageFetcher {
@@ -247,10 +267,7 @@ impl ImageFetcher {
                     None => {}
                 }
             }
-            resolved_images.push(ImageWithManifests {
-                image: image.clone(),
-                manifests: parsed_manifests,
-            });
+            resolved_images.push(ImageWithManifests::new(image.clone(), parsed_manifests));
         }
 
         Ok(resolved_images)
@@ -287,13 +304,13 @@ impl ImageFetcher {
                     Some(ManifestType::Image) => {
                         let manifest: ImageManifest =
                             serde_json::from_str(&resolved_manifest.manifest)?;
-                        resolved_images.push(ImageWithManifests {
-                            image: repo_image.clone(),
-                            manifests: vec![ImageManifestWithDescriptor {
+                        resolved_images.push(ImageWithManifests::new(
+                            repo_image.clone(),
+                            vec![ImageManifestWithDescriptor {
                                 content: manifest,
                                 descriptor: None,
                             }],
-                        })
+                        ))
                     }
                     Some(ManifestType::List) => {
                         let parsed: ImageIndex = serde_json::from_str(&resolved_manifest.manifest)?;
