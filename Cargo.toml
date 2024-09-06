@@ -2,6 +2,9 @@
 name = "ecr-dump"
 version = "0.1.0"
 edition = "2021"
+description = "Dump all ECR image manifests locally"
+license = "MIT"
+repository = "https://github.com/orf/ecr-dump/"
 
 [dependencies]
 anyhow = "1.0.86"
