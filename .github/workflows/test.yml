@@ -5,6 +5,12 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+    inputs:
+      publish-tag:
+        type: string
+        required: false
+        description: "Publish a tag"
 
 name: CI
 
@@ -36,6 +42,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.publish-tag || null }}
 
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.5
@@ -51,10 +59,10 @@ jobs:
         run: cargo run -- --help
 
       - name: Build release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.publish-tag
         run: cargo build --profile=lto
       - name: Package
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.publish-tag
         shell: bash
         run: |
           strip target/release/${{ matrix.bin }}
@@ -68,7 +76,7 @@ jobs:
           cd -
       - name: Archive binaries
         uses: actions/upload-artifact@v4
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || inputs.publish-tag
         with:
           name: build-${{ matrix.name }}
           path: ${{ matrix.name }}
@@ -76,16 +84,19 @@ jobs:
   create_release:
     name: Release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || inputs.publish-tag
     needs:
       - build_and_test
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.publish-tag || null }}
       - uses: actions/download-artifact@v4
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "${{ inputs.publish-tag }}"
           draft: false
           files: |
             **/*.tar.gz
@@ -103,6 +114,8 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.publish-tag || null }}
 
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.5
