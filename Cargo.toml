@@ -7,10 +7,24 @@ edition = "2021"
 anyhow = "1.0.86"
 aws-config = { version = "1.5.4", features = ["behavior-version-latest"] }
 aws-sdk-ecr = "1.37.0"
+aws-smithy-types-convert = { version = "0.60.8", features = ["convert-chrono"] }
+chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.13", features = ["derive"] }
-futures-util = "0.3.30"
-indicatif = { version = "0.17.8", features = ["tokio"] }
+futures-util = { version = "0.3.30", features = ["sink"] }
+globset = { version = "0.4.14", features = ["serde"] }
+indicatif = "0.17.8"
 itertools = "0.13.0"
+oci-spec = "0.6.8"
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.121"
+strum = { version = "0.26.3", features = ["derive"] }
 tokio = { version = "1.39.2", features = ["full"] }
+tracing = "0.1.40"
+tracing-indicatif = "0.3.6"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+
+[profile.lto]
+inherits = "release"
+lto = true
+codegen-units = 1
+panic = "abort"

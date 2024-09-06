@@ -1,3 +1,5 @@
 /target
 .idea
 *.jsonl
+*.parquet
+data/
