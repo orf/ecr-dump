@@ -76,7 +76,7 @@ impl RepositoryImage {
 
 #[derive(Debug, Serialize)]
 pub struct ImageManifestWithDescriptor {
-    pub manifest: ImageManifest,
+    pub content: ImageManifest,
     pub descriptor: Option<Descriptor>,
 }
 
@@ -237,7 +237,7 @@ impl ImageFetcher {
                         let manifest: ImageManifest =
                             serde_json::from_str(&resolved_manifest.manifest)?;
                         parsed_manifests.push(ImageManifestWithDescriptor {
-                            manifest,
+                            content: manifest,
                             descriptor: Some(descriptor.clone()),
                         });
                     }
@@ -290,7 +290,7 @@ impl ImageFetcher {
                         resolved_images.push(ImageWithManifests {
                             image: repo_image.clone(),
                             manifests: vec![ImageManifestWithDescriptor {
-                                manifest,
+                                content: manifest,
                                 descriptor: None,
                             }],
                         })
