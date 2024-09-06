@@ -1,6 +1,6 @@
 # ecr-dump
 
-A small tool to dump all image manifests from ECR. Uses default AWS creds
+A small tool to dump all image manifests from ECR.
 
 ```shell
 $ export AWS_PROFILE=... AWS_REGION=...

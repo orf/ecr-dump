@@ -100,6 +100,16 @@ impl Display for ImageFetcher {
     }
 }
 
+struct ResolvedManifest {
+    manifest: String,
+    media_type: String,
+}
+
+type ManifestsAndDescriptors<'a> = (
+    Vec<ImageWithManifests>,
+    Vec<(&'a RepositoryImage, Vec<Descriptor>)>,
+);
+
 impl ImageFetcher {
     #[allow(dead_code)]
     pub fn new(client: Client, repo_name: RepositoryName) -> Self {
@@ -189,7 +199,7 @@ impl ImageFetcher {
         Ok(resolved_images)
     }
 
-    #[instrument(name="manifests", skip_all, fields(repo = %self))]
+    #[instrument(name = "manifests", skip_all, fields(repo = %self))]
     pub async fn resolve_image_manifests<'a>(
         &'a self,
         images_with_manifest_lists: Vec<(&'a RepositoryImage, Vec<Descriptor>)>,
@@ -246,14 +256,11 @@ impl ImageFetcher {
         Ok(resolved_images)
     }
 
-    #[instrument(name="descriptors", skip_all, fields(repo = %self))]
+    #[instrument(name = "descriptors", skip_all, fields(repo = %self))]
     pub async fn resolve_image_descriptors<'a>(
         &'a self,
         images: &'a [RepositoryImage],
-    ) -> anyhow::Result<(
-        Vec<ImageWithManifests>,
-        Vec<(&'a RepositoryImage, Vec<Descriptor>)>,
-    )> {
+    ) -> anyhow::Result<ManifestsAndDescriptors> {
         let mut resolved_images = vec![];
         let mut images_with_manifest_lists = vec![];
 
@@ -354,9 +361,4 @@ impl ImageFetcher {
         }
         Ok(results)
     }
-}
-
-struct ResolvedManifest {
-    manifest: String,
-    media_type: String,
 }

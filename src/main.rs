@@ -102,7 +102,10 @@ async fn run(
     let mut buffer = vec![];
     while let Some(repo_result) = stream.next().await {
         let (name, repo_images) = repo_result?;
-        info!("Discovered {} images in repository {name}", repo_images.len());
+        info!(
+            "Discovered {} images in repository {name}",
+            repo_images.len()
+        );
         for image in repo_images {
             serde_json::to_writer(&mut buffer, &image)?;
             buffer.push(b'\n');
