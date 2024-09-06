@@ -40,6 +40,8 @@ jobs:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
 
+      release_profile: "lto"
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -60,13 +62,13 @@ jobs:
 
       - name: Build release
         if: startsWith(github.ref, 'refs/tags/') || inputs.publish-tag
-        run: cargo build --profile=lto
+        run: cargo build --profile=${{env.release_profile}}
       - name: Package
         if: startsWith(github.ref, 'refs/tags/') || inputs.publish-tag
         shell: bash
         run: |
-          strip target/release/${{ matrix.bin }}
-          cd target/release
+          strip target/${{env.release_profile}}/${{ matrix.bin }}
+          cd target/${{env.release_profile}}
           if [[ "${{ matrix.os }}" == "windows-latest" ]]
           then
           7z a ../../${{ matrix.name }} ${{ matrix.bin }}
