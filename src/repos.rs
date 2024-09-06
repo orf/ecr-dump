@@ -69,6 +69,7 @@ impl RepositoryLister {
                 debug!("No filter match for {name}, skipping");
                 None
             })
+            .sorted()
             .collect_vec();
 
         Ok(repositories)

@@ -13,9 +13,9 @@ use oci_spec::image::Descriptor;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
-use tracing::{debug, info, info_span, instrument, Level};
-use tracing_indicatif::IndicatifLayer;
+use tracing::{debug, info, instrument, Level};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
+use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::filter::Directive;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -66,8 +66,6 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Started");
 
-    let mut output = tokio::io::BufWriter::new(tokio::fs::File::create(args.output).await?);
-
     let shared_config = aws_config::load_from_env().await;
     let client = Client::new(&shared_config);
 
@@ -76,23 +74,35 @@ async fn main() -> anyhow::Result<()> {
 
     let repo_lister = RepositoryLister::new(client.clone(), include_filter, exclude_filter);
     let repo_names = repo_lister.list().await?;
-    info!("Found repositories: {:?}", repo_names);
+    info!("Discovered {} repositories", repo_names.len());
+    debug!("Repo names: {:?}", repo_names);
 
-    let _ = info_span!("run").entered();
+    let output = tokio::io::BufWriter::new(tokio::fs::File::create(args.output).await?);
+    run(client, repo_names, output, args.concurrency).await?;
 
-    let span = progress::set_span_progress(repo_names.len());
+    Ok(())
+}
+
+#[instrument(skip_all)]
+async fn run(
+    client: Client,
+    repo_names: Vec<String>,
+    mut output: tokio::io::BufWriter<tokio::fs::File>,
+    concurrency: usize,
+) -> anyhow::Result<()> {
+    let span = progress::set_span_progress("repos", repo_names.len());
 
     let mut stream = stream::iter(
         repo_names
             .into_iter()
-            .map(|val| fetch_repo(client.clone(), val, args.concurrency)),
+            .map(|val| fetch_repo(client.clone(), val, concurrency)),
     )
-    .buffer_unordered(args.concurrency);
+    .buffer_unordered(concurrency);
 
     let mut buffer = vec![];
     while let Some(repo_result) = stream.next().await {
         let (name, repo_images) = repo_result?;
-        info!("Found {} in repository {name}", repo_images.len());
+        info!("Discovered {} images in repository {name}", repo_images.len());
         for image in repo_images {
             serde_json::to_writer(&mut buffer, &image)?;
             buffer.push(b'\n');
@@ -103,7 +113,6 @@ async fn main() -> anyhow::Result<()> {
         output.flush().await?;
     }
     output.flush().await?;
-
     Ok(())
 }
 
@@ -111,11 +120,11 @@ async fn main() -> anyhow::Result<()> {
 async fn fetch_repo(
     client: Client,
     repo_name: RepositoryName,
-    concurrency: usize
+    concurrency: usize,
 ) -> anyhow::Result<(RepositoryName, Vec<ImageWithManifests>)> {
     let image_fetcher = ImageFetcher::new_with_concurrency(client, repo_name.clone(), concurrency);
     let images = image_fetcher.fetch_images().await?;
-    info!("Found {} images:", images.len());
+    debug!("Found {} images:", images.len());
     let resolved = image_fetcher
         .resolve_images(&images)
         .await

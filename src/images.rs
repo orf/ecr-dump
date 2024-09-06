@@ -107,7 +107,11 @@ impl ImageFetcher {
     }
 
     #[allow(dead_code)]
-    pub fn new_with_concurrency(client: Client, repo_name: RepositoryName, concurrency: usize) -> Self {
+    pub fn new_with_concurrency(
+        client: Client,
+        repo_name: RepositoryName,
+        concurrency: usize,
+    ) -> Self {
         Self::new_with_config(client, repo_name, 1000, 100, concurrency)
     }
 
@@ -123,7 +127,7 @@ impl ImageFetcher {
             client,
             page_size,
             chunk_size,
-            concurrency
+            concurrency,
         }
     }
 
@@ -185,14 +189,14 @@ impl ImageFetcher {
         Ok(resolved_images)
     }
 
-    #[instrument(skip_all, fields(repo = %self))]
+    #[instrument(name="manifests", skip_all, fields(repo = %self))]
     pub async fn resolve_image_manifests<'a>(
         &'a self,
         images_with_manifest_lists: Vec<(&'a RepositoryImage, Vec<Descriptor>)>,
     ) -> anyhow::Result<Vec<ImageWithManifests>> {
         let mut resolved_images = Vec::with_capacity(images_with_manifest_lists.len());
 
-        let span = set_span_progress(images_with_manifest_lists.len());
+        let span = set_span_progress("", images_with_manifest_lists.len());
 
         let all_results: Vec<_> = stream::iter(images_with_manifest_lists.iter())
             .map(|(image, descriptors)| {
@@ -242,7 +246,7 @@ impl ImageFetcher {
         Ok(resolved_images)
     }
 
-    #[instrument(skip_all, fields(repo = %self))]
+    #[instrument(name="descriptors", skip_all, fields(repo = %self))]
     pub async fn resolve_image_descriptors<'a>(
         &'a self,
         images: &'a [RepositoryImage],
@@ -253,7 +257,7 @@ impl ImageFetcher {
         let mut resolved_images = vec![];
         let mut images_with_manifest_lists = vec![];
 
-        let span = set_span_progress(images.len());
+        let span = set_span_progress("", images.len());
 
         let all_results: Vec<_> = stream::iter(images.chunks(self.chunk_size))
             .map(|chunk| {

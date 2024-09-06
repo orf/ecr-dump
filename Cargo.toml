@@ -19,7 +19,7 @@ serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.121"
 strum = { version = "0.26.3", features = ["derive"] }
 tokio = { version = "1.39.2", features = ["full"] }
-tracing = "0.1.40"
+tracing = {version = "0.1.40", features = ["release_max_level_info"]}
 tracing-indicatif = "0.3.6"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
