@@ -18,8 +18,7 @@ This will output the manifests and layers for all images in all ECR repositories
     "image_tags": [
       "latest"
     ],
-    "image_pushed_at": "2023-10-02T09:54:16Z",
-    "last_recorded_pull_time": "2024-09-06T11:18:59.016000032Z"
+    "image_pushed_at": "2023-10-02T09:54:16Z"
   },
   "manifests": [
     {

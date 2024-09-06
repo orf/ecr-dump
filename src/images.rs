@@ -43,7 +43,6 @@ pub struct RepositoryImage {
     #[serde(rename = "tags")]
     image_tags: Vec<String>,
     image_pushed_at: DateTime<Utc>,
-    last_recorded_pull_time: Option<DateTime<Utc>>,
 }
 
 impl Display for RepositoryImage {
@@ -65,9 +64,6 @@ impl RepositoryImage {
                 manifest_type,
                 image_tags: detail.image_tags.unwrap_or_default(),
                 image_pushed_at: detail.image_pushed_at?.to_chrono_utc().unwrap(),
-                last_recorded_pull_time: detail
-                    .last_recorded_pull_time
-                    .map(|v| v.to_chrono_utc().unwrap()),
             })
         } else {
             None
@@ -82,11 +78,16 @@ pub struct ImageManifestWithDescriptor {
 }
 
 #[derive(Debug, Serialize)]
+pub struct ImageStats {
+    pub total_layer_count: usize,
+    pub total_size: usize,
+}
+
+#[derive(Debug, Serialize)]
 pub struct ImageWithManifests {
     pub image: RepositoryImage,
     pub manifests: Vec<ImageManifestWithDescriptor>,
-    pub total_layer_count: usize,
-    pub total_size: usize,
+    pub stats: ImageStats,
 }
 
 impl ImageWithManifests {
@@ -100,8 +101,10 @@ impl ImageWithManifests {
         Self {
             image,
             manifests,
-            total_layer_count,
-            total_size: total_size as usize,
+            stats: ImageStats {
+                total_layer_count,
+                total_size: total_size as usize,
+            },
         }
     }
 }
