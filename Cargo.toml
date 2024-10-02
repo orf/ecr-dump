@@ -7,18 +7,18 @@ license = "MIT"
 repository = "https://github.com/orf/ecr-dump/"
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0.89"
 aws-config = { version = "1.5.4", features = ["behavior-version-latest"] }
 aws-sdk-ecr = "1.37.0"
 aws-smithy-types-convert = { version = "0.60.8", features = ["convert-chrono"] }
 chrono = { version = "0.4.38", features = ["serde"] }
-clap = { version = "4.5.13", features = ["derive"] }
+clap = { version = "4.5.19", features = ["derive"] }
 futures-util = { version = "0.3.30", features = ["sink"] }
-globset = { version = "0.4.14", features = ["serde"] }
+globset = { version = "0.4.15", features = ["serde"] }
 indicatif = "0.17.8"
 itertools = "0.13.0"
-oci-spec = "0.6.8"
-serde = { version = "1.0.204", features = ["derive"] }
+oci-spec = "0.7.0"
+serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.121"
 strum = { version = "0.26.3", features = ["derive"] }
 tokio = { version = "1.39.2", features = ["full"] }
